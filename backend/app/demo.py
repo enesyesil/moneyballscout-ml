@@ -11,7 +11,7 @@ POS = ["G"] + ["D"] * 4 + ["M"] * 4 + ["F"] * 3 + ["D", "M", "F"]  # 12 starters
 LEAGUE = {"id": 39, "name": "Premier League", "country": "England", "logo": None, "season": 2025}
 
 
-def make_league(n_teams: int = 10, rounds: int = 2, played_frac: float = 0.85, seed: int = 7):
+def make_league(n_teams: int = 10, rounds: int = 2, played_frac: float = 0.85, seed: int = 7, season: int = 2025):
     rng = np.random.default_rng(seed)
     team_strength = np.linspace(-0.5, 0.5, n_teams)
     rng.shuffle(team_strength)
@@ -29,7 +29,7 @@ def make_league(n_teams: int = 10, rounds: int = 2, played_frac: float = 0.85, s
     # double round robin
     pairs = [(h, a) for h in range(n_teams) for a in range(n_teams) if h != a]
     rng.shuffle(pairs)
-    start = datetime(2025, 8, 16, 14, tzinfo=UTC)
+    start = datetime(season, 8, 16, 14, tzinfo=UTC)
     fixtures, fixture_players = [], {}
     n_played = int(len(pairs) * played_frac)
     per_round = n_teams // 2
@@ -43,7 +43,7 @@ def make_league(n_teams: int = 10, rounds: int = 2, played_frac: float = 0.85, s
         gh, ga = (int(rng.poisson(lam_h)), int(rng.poisson(lam_a))) if played else (None, None)
         fixtures.append({
             "fixture": {"id": fid, "date": date.isoformat(), "status": {"short": "FT" if played else "NS"}},
-            "league": {**LEAGUE, "round": f"Regular Season - {rnd}"},
+            "league": {**LEAGUE, "season": season, "round": f"Regular Season - {rnd}"},
             "teams": {"home": teams[h], "away": teams[a]},
             "goals": {"home": gh, "away": ga},
         })
@@ -115,26 +115,29 @@ def coaches_payload(teams):
 
 
 def seed(session, seed: int = 7) -> dict:
-    """Load a synthetic league through the real loaders, plus Transfermarkt-style market values."""
+    """Load a synthetic league through the real loaders, plus Transfermarkt-style market values.
+    Dated to the configured SEASON so `train` picks it up."""
     from datetime import date
 
+    from app.core.config import get_settings
     from app.ingest import entity_resolution, loaders
     from app.models import MarketValue, TMPlayer
 
-    league = make_league(n_teams=20, seed=seed)
+    season = get_settings().season
+    league = make_league(n_teams=20, seed=seed, season=season)
     rng = np.random.default_rng(seed + 1)
     loaders.load_fixtures(session, league["fixtures"])
     loaders.load_teams(session, {"response": [{"team": t} for t in league["teams"]]}, LEAGUE["id"])
     for fid, payload in league["fixture_players"].items():
         loaders.load_fixture_players(session, fid, payload)
-    loaders.load_players(session, players_payload(league["players"]), LEAGUE["id"], LEAGUE["season"])
+    loaders.load_players(session, players_payload(league["players"]), LEAGUE["id"], season)
     loaders.load_coaches(session, coaches_payload(league["teams"]))
     for p in league["players"]:
         q = p["skill"] * 0.6 + p["team_strength"] * 2
         value = float(np.exp(16 + 0.8 * q + rng.normal(0, 0.4)))
         session.merge(TMPlayer(id=p["id"] + 1, name=f"{p['firstname']} {p['lastname']}", birth_date=date.fromisoformat(p["birth"]),
-                               market_value=value, competition_id="GB1", contract_expiration=date(2027, 6, 30)))
-        for d, f in ((date(2024, 6, 1), 0.7), (date(2024, 12, 1), 0.8), (date(2025, 6, 1), 0.9), (date(2025, 9, 1), 1.0)):
+                               market_value=value, competition_id="GB1", contract_expiration=date(season + 2, 6, 30)))
+        for d, f in ((date(season - 1, 6, 1), 0.7), (date(season - 1, 12, 1), 0.8), (date(season, 6, 1), 0.9), (date(season, 9, 1), 1.0)):
             session.add(MarketValue(tm_player_id=p["id"] + 1, date=d, value_eur=value * f * float(np.exp(rng.normal(0, 0.1)))))
     session.commit()
     links = entity_resolution.resolve(session)

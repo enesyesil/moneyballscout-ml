@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     daily_quota: int = 100
     per_minute_limit: int = 10
     leagues_csv: str = Field("39", alias="LEAGUES")
-    season: int = 2025
+    season: int = 2026
 
     # transfermarkt open dataset (dcaribou/transfermarkt-datasets)
     transfermarkt_base_url: str = "https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data"

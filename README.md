@@ -114,7 +114,7 @@ last 20 hours, otherwise it waits for the daily schedule.
    - secrets `COOLIFY_TOKEN` (the token above) and `API_FOOTBALL_KEY` (from dashboard.api-football.com)
    - variables `COOLIFY_URL` (e.g. `https://coolify.example.com`), `COOLIFY_APP_UUID` and `SITE_URL`
      (e.g. `https://scout.example.com`)
-3. **Actions → Bootstrap → Run workflow.** The defaults are the Premier League, 2025 season, free-plan quota.
+3. **Actions → Bootstrap → Run workflow.** The defaults are the Premier League, 2026-27 season, free-plan quota.
 
 After that, `git push` to `main` is all a release takes. The Deploy workflow skips the deploy step (with a warning)
 until the `production` environment is configured.

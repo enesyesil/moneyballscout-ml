@@ -4,6 +4,7 @@
   deploy          trigger a deployment and wait for it to finish (prints the build log tail on failure)
   wait-healthy    poll <site>/api/health until it answers (optionally until it reports the expected commit)
   wait-first-run  poll <site>/api/models/runs until the first model run finishes
+  check-fresh     fail if the site is down or the last successful model run is too old (daily monitor)
 
 Reads COOLIFY_URL, COOLIFY_TOKEN and COOLIFY_APP_UUID from the environment.
 """
@@ -17,6 +18,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 
 DONE_OK = {"finished"}
 DONE_FAIL = {"failed", "cancelled-by-user", "cancelled"}
@@ -187,6 +189,29 @@ def wait_first_run(args) -> None:
     print(f"::warning::no model run after {args.timeout}s; the worker keeps going on its own, check the Models page later")
 
 
+def check_fresh(args) -> None:
+    """Fail when the site is down or the daily pipeline has stopped producing successful runs."""
+    site = args.site.rstrip("/")
+    health = _get_json(f"{site}/api/health")
+    if not health or health.get("status") != "ok":
+        sys.exit(f"::error::{site}/api/health is not healthy (response: {health})")
+    runs = _get_json(f"{site}/api/models/runs?limit=20") or []
+    if runs and runs[0].get("status") == "failed":
+        err = (runs[0].get("metrics") or {}).get("error", "no error recorded")
+        print(f"::warning::latest model run #{runs[0]['id']} failed: {err}")
+    ok = next((r for r in runs if r.get("status") == "success"), None)
+    if ok is None:
+        sys.exit("::error::no successful model run yet")
+    created = datetime.fromisoformat(ok["created_at"].replace("Z", "+00:00"))
+    age_h = (datetime.now(timezone.utc) - created).total_seconds() / 3600
+    sync = _get_json(f"{site}/api/admin/sync-status") or {}
+    summary(f"Latest successful model run #{ok['id']} is {age_h:.1f}h old (limit {args.max_age_hours}h); "
+            f"API requests used today: {sync.get('used_today', '?')}/{sync.get('daily_quota', '?')}, "
+            f"backfill pending: {sync.get('backfill_pending', '?')}")
+    if age_h > args.max_age_hours:
+        sys.exit(f"::error::no successful model run for {age_h:.0f}h - check the worker logs in Coolify")
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -208,6 +233,10 @@ def main() -> None:
     r.add_argument("--site", required=True)
     r.add_argument("--timeout", type=int, default=3600)
     r.set_defaults(fn=wait_first_run)
+    f = sub.add_parser("check-fresh")
+    f.add_argument("--site", required=True)
+    f.add_argument("--max-age-hours", type=float, default=30)
+    f.set_defaults(fn=check_fresh)
     args = p.parse_args()
     args.fn(args)
 

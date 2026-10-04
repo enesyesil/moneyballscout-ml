@@ -1,5 +1,7 @@
 # Continuous deployment: every pull request is tested; every push to main is tested and, if green, deployed to
 # Coolify, then health-checked. Run the Bootstrap workflow once before the first deploy.
+# A daily scheduled run only checks the live site: it fails (and GitHub emails you) when the site is down or the
+# daily pipeline hasn't produced a successful model run in 30 hours.
 name: Deploy
 
 on:
@@ -7,14 +9,20 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * *"  # 2.5h after the default SYNC_CRON_HOUR=4
 
 concurrency:
-  # PRs: newest commit wins. main: deploys queue up and never cancel each other mid-way.
-  group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || 'production-deploy' }}
+  # PRs: newest commit wins. main: deploys queue up and never cancel each other mid-way. The monitor has its own
+  # group so a queued check can never replace a queued deploy.
+  group: >-
+    ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref)
+    || github.event_name == 'schedule' && 'monitor' || 'production-deploy' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -36,6 +44,7 @@ jobs:
           git diff --exit-code openapi.json || { echo "::error::backend/openapi.json is stale - regenerate it (README > Run locally)"; exit 1; }
 
   frontend:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -56,7 +65,7 @@ jobs:
       - run: npm run build
 
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     environment:
@@ -93,3 +102,16 @@ jobs:
             echo "$path -> $code"
             [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
           done
+
+  monitor:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Site is up and data is fresh
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ]; then echo "::notice::SITE_URL not set yet - nothing to monitor"; exit 0; fi
+          python3 deploy/coolify.py check-fresh --site "$SITE_URL" --max-age-hours 30

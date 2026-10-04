@@ -4,7 +4,7 @@
 #   2. runs a clean (no-cache) deployment and waits for it
 #   3. waits for /api/health, then optionally for the worker's first data load + model run
 # Prerequisites (see README "Deploy"): the Coolify application exists, and the `production` environment has
-# secrets COOLIFY_TOKEN, API_FOOTBALL_KEY and variables COOLIFY_URL, COOLIFY_APP_UUID, SITE_URL.
+# secrets COOLIFY_TOKEN, API_FOOTBALL_KEY; repository variables COOLIFY_URL, COOLIFY_APP_UUID, SITE_URL.
 name: Bootstrap
 
 on:

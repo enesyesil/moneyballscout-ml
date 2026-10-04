@@ -94,7 +94,7 @@ Two workflows in [`.github/workflows/`](.github/workflows/), both driving Coolif
 | Workflow | When | What it does |
 |---|---|---|
 | **Bootstrap** | once, by hand (Actions → Bootstrap → Run workflow); safe to re-run | Writes the app's env vars on Coolify (API key, leagues, season, quota; generates the Postgres and MinIO passwords once, never overwrites them), runs a clean build, waits for `/api/health`, then for the worker's first data load and model run. |
-| **Deploy** | every push to `main` (PRs: tests only) | Backend tests, OpenAPI/TS type drift checks and the frontend build; if green, deploys to Coolify, waits for the build, health-checks the new commit and smoke-tests the main pages. |
+| **Deploy** | every push to `main` (PRs: tests only); daily monitor at 06:30 UTC | Backend tests, OpenAPI/TS type drift checks and the frontend build; if green, deploys to Coolify, waits for the build, health-checks the new commit and smoke-tests the main pages. The daily run only checks the live site and fails (GitHub emails you) if it is down or no model run has succeeded in 30h. |
 
 Redeploys don't spend API quota: the worker only runs its start-up sync if there was no successful model run in the
 last 20 hours, otherwise it waits for the daily schedule.
@@ -110,10 +110,12 @@ last 20 hours, otherwise it waits for the daily schedule.
    - Enable scheduled backups for the `pgdata` volume.
    - Note the application's UUID (in its URL), and create an API token under **Keys & Tokens → API tokens** with
      `write`, `deploy` and `read:sensitive` permissions.
-2. **GitHub:** Settings → Environments → **New environment** `production`, then add:
-   - secrets `COOLIFY_TOKEN` (the token above) and `API_FOOTBALL_KEY` (from dashboard.api-football.com)
-   - variables `COOLIFY_URL` (e.g. `https://coolify.example.com`), `COOLIFY_APP_UUID` and `SITE_URL`
-     (e.g. `https://scout.example.com`)
+2. **GitHub:**
+   - Settings → Environments → **New environment** `production`, with secrets `COOLIFY_TOKEN` (the token above) and
+     `API_FOOTBALL_KEY` (from dashboard.api-football.com).
+   - Settings → Secrets and variables → Actions → **Variables** (repository level, so the daily monitor sees them
+     too): `COOLIFY_URL` (e.g. `https://coolify.example.com`), `COOLIFY_APP_UUID` and `SITE_URL`
+     (e.g. `https://scout.example.com`).
 3. **Actions → Bootstrap → Run workflow.** The defaults are the Premier League, 2026-27 season, free-plan quota.
 
 After that, `git push` to `main` is all a release takes. The Deploy workflow skips the deploy step (with a warning)

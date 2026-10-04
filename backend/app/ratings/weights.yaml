@@ -1,0 +1,57 @@
+# Prior action values in goal-difference units (how much one action moves a team's goal difference).
+# Used until enough matches are stored, then blended with values learned by ratings/action_values.py.
+# `sign` is the expected direction; the learned ridge is sign-constrained to respect it.
+process_actions:
+  shots_on:          {prior: 0.10,   sign: 1}
+  shots_off:         {prior: 0.02,   sign: 1}
+  key_passes:        {prior: 0.05,   sign: 1}
+  dribbles_success:  {prior: 0.03,   sign: 1}
+  dribbles_failed:   {prior: -0.01,  sign: -1}
+  passes_accurate:   {prior: 0.004,  sign: 1}
+  passes_failed:     {prior: -0.006, sign: -1}
+  tackles:           {prior: 0.03,   sign: 1}
+  interceptions:     {prior: 0.03,   sign: 1}
+  blocks:            {prior: 0.03,   sign: 1}
+  duels_won:         {prior: 0.012,  sign: 1}
+  duels_lost:        {prior: -0.012, sign: -1}
+  fouls_drawn:       {prior: 0.01,   sign: 1}
+  fouls_committed:   {prior: -0.01,  sign: -1}
+  dribbled_past:     {prior: -0.02,  sign: -1}
+  offsides:          {prior: -0.01,  sign: -1}
+  yellow:            {prior: -0.05,  sign: -1}
+  red:               {prior: -0.50,  sign: -1}
+  saves:             {prior: 0.12,   sign: 1}
+  pen_won:           {prior: 0.25,   sign: 1}
+  pen_committed:     {prior: -0.30,  sign: -1}
+  pen_missed:        {prior: -0.30,  sign: -1}
+  pen_saved:         {prior: 0.40,   sign: 1}
+
+# Outcome credit on top of process value (not learned: regressing goal difference on goals is trivial).
+outcomes:
+  goal: 1.0
+  penalty_goal: 0.6
+  assist: 0.6
+  conceded_share: -0.30      # per team goal conceded, x minutes/90, GK and DEF only
+  clean_sheet: {GK: 0.35, DEF: 0.20, MID: 0.05, FWD: 0.0}   # needs >= 60 minutes
+
+# Matches needed before learned values get 50% weight against the priors.
+blend_half_life_matches: 150
+
+# Component groups for the "why this rating" breakdown.
+components:
+  shooting: [shots_on, shots_off, offsides, pen_won, pen_missed]
+  creativity: [key_passes, dribbles_success, dribbles_failed, fouls_drawn]
+  passing: [passes_accurate, passes_failed]
+  defending: [tackles, interceptions, blocks, duels_won, duels_lost, dribbled_past]
+  discipline: [fouls_committed, yellow, red, pen_committed]
+  goalkeeping: [saves, pen_saved]
+
+rating_scale:
+  mean: 6.7
+  sd: 0.75
+  min: 3.0
+  max: 10.0
+  min_minutes: 10
+  cameo_anchor: 6.4
+  full_weight_minutes: 60
+  opponent_adjust: 0.08   # +8% process value per 1 SD of opponent strength

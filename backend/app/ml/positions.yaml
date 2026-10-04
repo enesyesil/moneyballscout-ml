@@ -1,0 +1,23 @@
+# Ported from the legacy notebook ("Key Metrics For Positions" and important_columns_*).
+# FBref metrics -> closest API-Football fields:
+#   non-penalty goals -> npg, npxG -> shots_on, xAG / shot-creating actions -> key_passes (+ dribbles_success),
+#   progressive passes -> passes_accurate, take-ons -> dribbles_success, aerials won -> duels_won.
+# All metrics are per 90 except *_pct rates. Negative metrics are listed under `inverse`.
+groups:
+  FWD:
+    metrics: [npg, shots_on, shots_total, assists, key_passes, dribbles_success, duels_won, fouls_drawn]
+  MID:
+    metrics: [passes_accurate, pass_pct, key_passes, assists, npg, tackles, interceptions, dribbles_success, duels_won]
+  DEF:
+    metrics: [tackles, interceptions, blocks, duels_won, duel_pct, passes_accurate, pass_pct, key_passes, dribbled_past]
+    inverse: [dribbled_past]
+  GK:
+    metrics: [saves, save_pct, conceded, pass_pct, pen_saved]
+    inverse: [conceded]
+
+# api-football match position code / profile position -> group
+match_position: {G: GK, D: DEF, M: MID, F: FWD}
+profile_position: {Goalkeeper: GK, Defender: DEF, Midfielder: MID, Attacker: FWD}
+
+# legacy notebook's hardcoded league bonus, kept as a fallback league coefficient
+league_scores: {39: 5.0, 140: 4.5, 78: 3.5, 135: 3.0, 61: 3.0}

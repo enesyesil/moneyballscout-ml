@@ -1,0 +1,2492 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "Moneyball Scout API",
+  "description": "Live football data from API-Football, match ratings, form, valuations and manager ratings.",
+  "version": "0.1.0"
+ },
+ "paths": {
+  "/api/health": {
+   "get": {
+    "tags": [
+     "system"
+    ],
+    "summary": "Health",
+    "operationId": "health_api_health_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/meta": {
+   "get": {
+    "tags": [
+     "system"
+    ],
+    "summary": "Meta",
+    "operationId": "meta_api_meta_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Meta"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/dashboard": {
+   "get": {
+    "tags": [
+     "system"
+    ],
+    "summary": "Dashboard",
+    "operationId": "dashboard_api_dashboard_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Dashboard"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/models/runs": {
+   "get": {
+    "tags": [
+     "system"
+    ],
+    "summary": "Model Runs",
+    "operationId": "model_runs_api_models_runs_get",
+    "parameters": [
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "default": 20,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ModelRunOut"
+         },
+         "title": "Response Model Runs Api Models Runs Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/admin/sync-status": {
+   "get": {
+    "tags": [
+     "system"
+    ],
+    "summary": "Admin Sync Status",
+    "operationId": "admin_sync_status_api_admin_sync_status_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/players": {
+   "get": {
+    "tags": [
+     "players"
+    ],
+    "summary": "List Players",
+    "operationId": "list_players_api_players_get",
+    "parameters": [
+     {
+      "name": "position",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "GK",
+          "DEF",
+          "MID",
+          "FWD"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Position"
+      }
+     },
+     {
+      "name": "team_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Team Id"
+      }
+     },
+     {
+      "name": "age_max",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Age Max"
+      }
+     },
+     {
+      "name": "value_max",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "EUR",
+       "title": "Value Max"
+      },
+      "description": "EUR"
+     },
+     {
+      "name": "min_minutes",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 0,
+       "title": "Min Minutes"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "perf_index",
+        "form",
+        "avg_rating",
+        "market_value",
+        "minutes",
+        "goals",
+        "undervalue"
+       ],
+       "type": "string",
+       "default": "perf_index",
+       "title": "Sort"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 500,
+       "default": 50,
+       "title": "Limit"
+      }
+     },
+     {
+      "name": "offset",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 0,
+       "title": "Offset"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/PlayerRow"
+         },
+         "title": "Response List Players Api Players Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/players/{player_id}": {
+   "get": {
+    "tags": [
+     "players"
+    ],
+    "summary": "Player Detail",
+    "operationId": "player_detail_api_players__player_id__get",
+    "parameters": [
+     {
+      "name": "player_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Player Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlayerDetail"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/players/{player_id}/ratings": {
+   "get": {
+    "tags": [
+     "players"
+    ],
+    "summary": "Player Ratings",
+    "operationId": "player_ratings_api_players__player_id__ratings_get",
+    "parameters": [
+     {
+      "name": "player_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Player Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/RatingPoint"
+         },
+         "title": "Response Player Ratings Api Players  Player Id  Ratings Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/players/{player_id}/similar": {
+   "get": {
+    "tags": [
+     "players"
+    ],
+    "summary": "Similar",
+    "operationId": "similar_api_players__player_id__similar_get",
+    "parameters": [
+     {
+      "name": "player_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Player Id"
+      }
+     },
+     {
+      "name": "max_value",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Max Value"
+      }
+     },
+     {
+      "name": "max_age",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Max Age"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 15,
+       "default": 10,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/SimilarRow"
+         },
+         "title": "Response Similar Api Players  Player Id  Similar Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/moneyball/undervalued": {
+   "get": {
+    "tags": [
+     "players"
+    ],
+    "summary": "Undervalued",
+    "operationId": "undervalued_api_moneyball_undervalued_get",
+    "parameters": [
+     {
+      "name": "position",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "GK",
+          "DEF",
+          "MID",
+          "FWD"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Position"
+      }
+     },
+     {
+      "name": "age_max",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Age Max"
+      }
+     },
+     {
+      "name": "value_max",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Value Max"
+      }
+     },
+     {
+      "name": "min_minutes",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 450,
+       "title": "Min Minutes"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "default": 25,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/PlayerRow"
+         },
+         "title": "Response Undervalued Api Moneyball Undervalued Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/moneyball/scatter": {
+   "get": {
+    "tags": [
+     "players"
+    ],
+    "summary": "Scatter",
+    "operationId": "scatter_api_moneyball_scatter_get",
+    "parameters": [
+     {
+      "name": "position",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "GK",
+          "DEF",
+          "MID",
+          "FWD"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Position"
+      }
+     },
+     {
+      "name": "min_minutes",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 270,
+       "title": "Min Minutes"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ScatterPoint"
+         },
+         "title": "Response Scatter Api Moneyball Scatter Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fixtures": {
+   "get": {
+    "tags": [
+     "fixtures"
+    ],
+    "summary": "List Fixtures",
+    "operationId": "list_fixtures_api_fixtures_get",
+    "parameters": [
+     {
+      "name": "status",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "upcoming",
+        "played"
+       ],
+       "type": "string",
+       "default": "played",
+       "title": "Status"
+      }
+     },
+     {
+      "name": "team_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Team Id"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 400,
+       "default": 20,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/FixtureRow"
+         },
+         "title": "Response List Fixtures Api Fixtures Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fixtures/{fixture_id}": {
+   "get": {
+    "tags": [
+     "fixtures"
+    ],
+    "summary": "Fixture Detail",
+    "operationId": "fixture_detail_api_fixtures__fixture_id__get",
+    "parameters": [
+     {
+      "name": "fixture_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Fixture Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FixtureDetail"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/teams": {
+   "get": {
+    "tags": [
+     "teams"
+    ],
+    "summary": "List Teams",
+    "operationId": "list_teams_api_teams_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/TeamRow"
+         },
+         "type": "array",
+         "title": "Response List Teams Api Teams Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/teams/{team_id}": {
+   "get": {
+    "tags": [
+     "teams"
+    ],
+    "summary": "Team Detail",
+    "operationId": "team_detail_api_teams__team_id__get",
+    "parameters": [
+     {
+      "name": "team_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Team Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamDetail"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/managers": {
+   "get": {
+    "tags": [
+     "teams"
+    ],
+    "summary": "List Managers",
+    "operationId": "list_managers_api_managers_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ManagerRow"
+         },
+         "type": "array",
+         "title": "Response List Managers Api Managers Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/managers/{coach_id}": {
+   "get": {
+    "tags": [
+     "teams"
+    ],
+    "summary": "Manager Detail",
+    "operationId": "manager_detail_api_managers__coach_id__get",
+    "parameters": [
+     {
+      "name": "coach_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Coach Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ManagerDetail"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "Dashboard": {
+    "properties": {
+     "round": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Round"
+     },
+     "team_of_the_week": {
+      "items": {
+       "$ref": "#/components/schemas/TeamOfWeekPlayer"
+      },
+      "type": "array",
+      "title": "Team Of The Week"
+     },
+     "in_form": {
+      "items": {
+       "$ref": "#/components/schemas/PlayerRow"
+      },
+      "type": "array",
+      "title": "In Form"
+     },
+     "undervalued": {
+      "items": {
+       "$ref": "#/components/schemas/PlayerRow"
+      },
+      "type": "array",
+      "title": "Undervalued"
+     },
+     "upcoming": {
+      "items": {
+       "$ref": "#/components/schemas/FixtureRow"
+      },
+      "type": "array",
+      "title": "Upcoming"
+     },
+     "latest_run": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ModelRunOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "team_of_the_week",
+     "in_form",
+     "undervalued",
+     "upcoming"
+    ],
+    "title": "Dashboard"
+   },
+   "FixtureDetail": {
+    "properties": {
+     "fixture": {
+      "$ref": "#/components/schemas/FixtureRow"
+     },
+     "lineups": {
+      "additionalProperties": {
+       "items": {
+        "$ref": "#/components/schemas/LineupPlayer"
+       },
+       "type": "array"
+      },
+      "type": "object",
+      "title": "Lineups"
+     }
+    },
+    "type": "object",
+    "required": [
+     "fixture",
+     "lineups"
+    ],
+    "title": "FixtureDetail"
+   },
+   "FixtureRow": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "date": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Date"
+     },
+     "round": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Round"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "home": {
+      "$ref": "#/components/schemas/TeamRef"
+     },
+     "away": {
+      "$ref": "#/components/schemas/TeamRef"
+     },
+     "home_goals": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Home Goals"
+     },
+     "away_goals": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Away Goals"
+     },
+     "prediction": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Prediction"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "date",
+     "status",
+     "home",
+     "away"
+    ],
+    "title": "FixtureRow"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "LineupPlayer": {
+    "properties": {
+     "player_id": {
+      "type": "integer",
+      "title": "Player Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "photo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Photo"
+     },
+     "position": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Position"
+     },
+     "minutes": {
+      "type": "integer",
+      "title": "Minutes"
+     },
+     "substitute": {
+      "type": "boolean",
+      "title": "Substitute"
+     },
+     "rating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rating"
+     },
+     "api_rating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Api Rating"
+     },
+     "components": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Components",
+      "default": {}
+     },
+     "goals": {
+      "type": "integer",
+      "title": "Goals"
+     },
+     "assists": {
+      "type": "integer",
+      "title": "Assists"
+     }
+    },
+    "type": "object",
+    "required": [
+     "player_id",
+     "name",
+     "minutes",
+     "substitute",
+     "goals",
+     "assists"
+    ],
+    "title": "LineupPlayer"
+   },
+   "ManagerDetail": {
+    "properties": {
+     "manager": {
+      "$ref": "#/components/schemas/ManagerRow"
+     },
+     "nationality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nationality"
+     },
+     "series": {
+      "items": {
+       "$ref": "#/components/schemas/ManagerPoint"
+      },
+      "type": "array",
+      "title": "Series"
+     }
+    },
+    "type": "object",
+    "required": [
+     "manager",
+     "series"
+    ],
+    "title": "ManagerDetail"
+   },
+   "ManagerPoint": {
+    "properties": {
+     "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+     },
+     "pts": {
+      "type": "integer",
+      "title": "Pts"
+     },
+     "xpts": {
+      "type": "number",
+      "title": "Xpts"
+     }
+    },
+    "type": "object",
+    "required": [
+     "date",
+     "pts",
+     "xpts"
+    ],
+    "title": "ManagerPoint"
+   },
+   "ManagerRow": {
+    "properties": {
+     "coach_id": {
+      "type": "integer",
+      "title": "Coach Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "photo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Photo"
+     },
+     "team": {
+      "$ref": "#/components/schemas/TeamRef"
+     },
+     "tenure_start": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tenure Start"
+     },
+     "matches": {
+      "type": "integer",
+      "title": "Matches"
+     },
+     "ppg": {
+      "type": "number",
+      "title": "Ppg"
+     },
+     "xppg": {
+      "type": "number",
+      "title": "Xppg"
+     },
+     "pts_over_exp": {
+      "type": "number",
+      "title": "Pts Over Exp"
+     },
+     "squad_efficiency": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Squad Efficiency"
+     },
+     "development": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Development"
+     },
+     "score": {
+      "type": "number",
+      "title": "Score"
+     }
+    },
+    "type": "object",
+    "required": [
+     "coach_id",
+     "name",
+     "team",
+     "matches",
+     "ppg",
+     "xppg",
+     "pts_over_exp",
+     "score"
+    ],
+    "title": "ManagerRow"
+   },
+   "Meta": {
+    "properties": {
+     "leagues": {
+      "items": {
+       "type": "integer"
+      },
+      "type": "array",
+      "title": "Leagues"
+     },
+     "season": {
+      "type": "integer",
+      "title": "Season"
+     },
+     "teams": {
+      "items": {
+       "$ref": "#/components/schemas/TeamRef"
+      },
+      "type": "array",
+      "title": "Teams"
+     },
+     "latest_run": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ModelRunOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "leagues",
+     "season",
+     "teams"
+    ],
+    "title": "Meta"
+   },
+   "ModelRunOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "git_sha": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Git Sha"
+     },
+     "data_cutoff": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Data Cutoff"
+     },
+     "mlflow_run_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Mlflow Run Id"
+     },
+     "metrics": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Metrics"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "created_at",
+     "status",
+     "metrics"
+    ],
+    "title": "ModelRunOut"
+   },
+   "PlayerDetail": {
+    "properties": {
+     "player": {
+      "$ref": "#/components/schemas/PlayerRow"
+     },
+     "nationality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nationality"
+     },
+     "birth_date": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Date"
+     },
+     "height_cm": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Height Cm"
+     },
+     "profile_position": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Position"
+     },
+     "form_sd": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Sd"
+     },
+     "per90": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "type": "object",
+      "title": "Per90"
+     },
+     "shrunk_per90": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "type": "object",
+      "title": "Shrunk Per90"
+     },
+     "percentiles": {
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "type": "object",
+      "title": "Percentiles"
+     },
+     "valuation": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Valuation"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "value_history": {
+      "items": {
+       "$ref": "#/components/schemas/ValuePoint"
+      },
+      "type": "array",
+      "title": "Value History"
+     },
+     "contract_expiration": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Contract Expiration"
+     }
+    },
+    "type": "object",
+    "required": [
+     "player",
+     "per90",
+     "shrunk_per90",
+     "percentiles",
+     "value_history"
+    ],
+    "title": "PlayerDetail"
+   },
+   "PlayerRow": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "photo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Photo"
+     },
+     "team": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TeamRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "position_group": {
+      "type": "string",
+      "title": "Position Group"
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     },
+     "apps": {
+      "type": "integer",
+      "title": "Apps"
+     },
+     "minutes": {
+      "type": "integer",
+      "title": "Minutes"
+     },
+     "goals": {
+      "type": "integer",
+      "title": "Goals"
+     },
+     "assists": {
+      "type": "integer",
+      "title": "Assists"
+     },
+     "avg_rating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Rating"
+     },
+     "form": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form"
+     },
+     "expected_next": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expected Next"
+     },
+     "perf_index": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Perf Index"
+     },
+     "market_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Value"
+     },
+     "p50": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P50"
+     },
+     "undervalue_score": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Undervalue Score"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "position_group",
+     "apps",
+     "minutes",
+     "goals",
+     "assists"
+    ],
+    "title": "PlayerRow"
+   },
+   "Prediction": {
+    "properties": {
+     "home_win": {
+      "type": "number",
+      "title": "Home Win"
+     },
+     "draw": {
+      "type": "number",
+      "title": "Draw"
+     },
+     "away_win": {
+      "type": "number",
+      "title": "Away Win"
+     },
+     "exp_home_goals": {
+      "type": "number",
+      "title": "Exp Home Goals"
+     },
+     "exp_away_goals": {
+      "type": "number",
+      "title": "Exp Away Goals"
+     }
+    },
+    "type": "object",
+    "required": [
+     "home_win",
+     "draw",
+     "away_win",
+     "exp_home_goals",
+     "exp_away_goals"
+    ],
+    "title": "Prediction"
+   },
+   "RatingPoint": {
+    "properties": {
+     "fixture_id": {
+      "type": "integer",
+      "title": "Fixture Id"
+     },
+     "date": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Date"
+     },
+     "opponent": {
+      "$ref": "#/components/schemas/TeamRef"
+     },
+     "home": {
+      "type": "boolean",
+      "title": "Home"
+     },
+     "score": {
+      "type": "string",
+      "title": "Score"
+     },
+     "minutes": {
+      "type": "integer",
+      "title": "Minutes"
+     },
+     "rating": {
+      "type": "number",
+      "title": "Rating"
+     },
+     "api_rating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Api Rating"
+     },
+     "form": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form"
+     },
+     "form_lo": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Lo"
+     },
+     "form_hi": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form Hi"
+     },
+     "components": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Components"
+     }
+    },
+    "type": "object",
+    "required": [
+     "fixture_id",
+     "date",
+     "opponent",
+     "home",
+     "score",
+     "minutes",
+     "rating",
+     "components"
+    ],
+    "title": "RatingPoint"
+   },
+   "ScatterPoint": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "team": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Team"
+     },
+     "position_group": {
+      "type": "string",
+      "title": "Position Group"
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     },
+     "perf_index": {
+      "type": "number",
+      "title": "Perf Index"
+     },
+     "market_value": {
+      "type": "number",
+      "title": "Market Value"
+     },
+     "p10": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P10"
+     },
+     "p50": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P50"
+     },
+     "p90": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P90"
+     },
+     "undervalue_score": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Undervalue Score"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "position_group",
+     "perf_index",
+     "market_value"
+    ],
+    "title": "ScatterPoint"
+   },
+   "SimilarRow": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "photo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Photo"
+     },
+     "team": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TeamRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "position_group": {
+      "type": "string",
+      "title": "Position Group"
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     },
+     "apps": {
+      "type": "integer",
+      "title": "Apps"
+     },
+     "minutes": {
+      "type": "integer",
+      "title": "Minutes"
+     },
+     "goals": {
+      "type": "integer",
+      "title": "Goals"
+     },
+     "assists": {
+      "type": "integer",
+      "title": "Assists"
+     },
+     "avg_rating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Rating"
+     },
+     "form": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Form"
+     },
+     "expected_next": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expected Next"
+     },
+     "perf_index": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Perf Index"
+     },
+     "market_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Value"
+     },
+     "p50": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "P50"
+     },
+     "undervalue_score": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Undervalue Score"
+     },
+     "similarity": {
+      "type": "number",
+      "title": "Similarity"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "position_group",
+     "apps",
+     "minutes",
+     "goals",
+     "assists",
+     "similarity"
+    ],
+    "title": "SimilarRow"
+   },
+   "TeamDetail": {
+    "properties": {
+     "team": {
+      "$ref": "#/components/schemas/TeamRow"
+     },
+     "series": {
+      "items": {
+       "$ref": "#/components/schemas/TeamMatchPoint"
+      },
+      "type": "array",
+      "title": "Series"
+     },
+     "squad": {
+      "items": {
+       "$ref": "#/components/schemas/PlayerRow"
+      },
+      "type": "array",
+      "title": "Squad"
+     },
+     "managers": {
+      "items": {
+       "$ref": "#/components/schemas/ManagerRow"
+      },
+      "type": "array",
+      "title": "Managers"
+     }
+    },
+    "type": "object",
+    "required": [
+     "team",
+     "series",
+     "squad",
+     "managers"
+    ],
+    "title": "TeamDetail"
+   },
+   "TeamMatchPoint": {
+    "properties": {
+     "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+     },
+     "fixture_id": {
+      "type": "integer",
+      "title": "Fixture Id"
+     },
+     "opponent_id": {
+      "type": "integer",
+      "title": "Opponent Id"
+     },
+     "gf": {
+      "type": "integer",
+      "title": "Gf"
+     },
+     "ga": {
+      "type": "integer",
+      "title": "Ga"
+     },
+     "pts": {
+      "type": "integer",
+      "title": "Pts"
+     },
+     "xpts": {
+      "type": "number",
+      "title": "Xpts"
+     }
+    },
+    "type": "object",
+    "required": [
+     "date",
+     "fixture_id",
+     "opponent_id",
+     "gf",
+     "ga",
+     "pts",
+     "xpts"
+    ],
+    "title": "TeamMatchPoint"
+   },
+   "TeamOfWeekPlayer": {
+    "properties": {
+     "player_id": {
+      "type": "integer",
+      "title": "Player Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "photo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Photo"
+     },
+     "team": {
+      "$ref": "#/components/schemas/TeamRef"
+     },
+     "position_group": {
+      "type": "string",
+      "title": "Position Group"
+     },
+     "rating": {
+      "type": "number",
+      "title": "Rating"
+     }
+    },
+    "type": "object",
+    "required": [
+     "player_id",
+     "name",
+     "team",
+     "position_group",
+     "rating"
+    ],
+    "title": "TeamOfWeekPlayer"
+   },
+   "TeamRef": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "logo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Logo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name"
+    ],
+    "title": "TeamRef"
+   },
+   "TeamRow": {
+    "properties": {
+     "team": {
+      "$ref": "#/components/schemas/TeamRef"
+     },
+     "attack": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Attack"
+     },
+     "defence": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Defence"
+     },
+     "rating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rating"
+     },
+     "played": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Played"
+     },
+     "points": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Points"
+     },
+     "xpts": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Xpts"
+     },
+     "goals_for": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Goals For"
+     },
+     "goals_against": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Goals Against"
+     },
+     "avg_player_rating": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Avg Player Rating"
+     },
+     "squad_value": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Squad Value"
+     }
+    },
+    "type": "object",
+    "required": [
+     "team"
+    ],
+    "title": "TeamRow"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   },
+   "Valuation": {
+    "properties": {
+     "market_value": {
+      "type": "number",
+      "title": "Market Value"
+     },
+     "p10": {
+      "type": "number",
+      "title": "P10"
+     },
+     "p50": {
+      "type": "number",
+      "title": "P50"
+     },
+     "p90": {
+      "type": "number",
+      "title": "P90"
+     },
+     "undervalue_score": {
+      "type": "number",
+      "title": "Undervalue Score"
+     },
+     "below_p10": {
+      "type": "boolean",
+      "title": "Below P10"
+     },
+     "contributions": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Contributions"
+     }
+    },
+    "type": "object",
+    "required": [
+     "market_value",
+     "p10",
+     "p50",
+     "p90",
+     "undervalue_score",
+     "below_p10",
+     "contributions"
+    ],
+    "title": "Valuation"
+   },
+   "ValuePoint": {
+    "properties": {
+     "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+     },
+     "value": {
+      "type": "number",
+      "title": "Value"
+     }
+    },
+    "type": "object",
+    "required": [
+     "date",
+     "value"
+    ],
+    "title": "ValuePoint"
+   }
+  }
+ }
+}

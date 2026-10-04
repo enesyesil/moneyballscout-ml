@@ -86,18 +86,42 @@ After changing API schemas, regenerate the frontend types:
 cd backend && .venv/bin/python -c "import json; from app.main import app; json.dump(app.openapi(), open('openapi.json','w'), indent=1)" && cd ../frontend && npm run gen:api
 ```
 
-## Deploy on Coolify
+## Deploy (Coolify + GitHub Actions)
 
-1. **New resource → Docker Compose**, from this GitHub repo, compose file `docker-compose.prod.yml`.
-2. Environment variables: `API_FOOTBALL_KEY`, `POSTGRES_PASSWORD`, `MINIO_ROOT_PASSWORD` (required), plus optional
-   `LEAGUES`, `SEASON`, `DAILY_QUOTA`, `SYNC_CRON_HOUR`.
-3. Domains: set your domain on **web** (port 80); TLS is handled by Coolify's proxy. To see the MLflow UI, add a
-   domain on **mlflow** (port 5000) and protect it with basic auth in Coolify.
-4. Enable scheduled backups for the `pgdata` volume.
-5. Deploy. On first start, the worker loads Transfermarkt values, syncs what the quota allows and trains. After that,
-   it runs daily at `SYNC_CRON_HOUR` UTC (with Transfermarkt refreshed weekly). To run commands by hand, open the `worker`
-   container's terminal in Coolify and run e.g. `python -m app.cli status` or `python -m app.cli train`.
-6. Check `https://<domain>/api/health` and the **Models** page (quota usage, backfill progress, run metrics).
+Two workflows in [`.github/workflows/`](.github/workflows/), both driving Coolify through its API
+([`deploy/coolify.py`](deploy/coolify.py)):
+
+| Workflow | When | What it does |
+|---|---|---|
+| **Bootstrap** | once, by hand (Actions → Bootstrap → Run workflow); safe to re-run | Writes the app's env vars on Coolify (API key, leagues, season, quota; generates the Postgres and MinIO passwords once, never overwrites them), runs a clean build, waits for `/api/health`, then for the worker's first data load and model run. |
+| **Deploy** | every push to `main` (PRs: tests only) | Backend tests, OpenAPI/TS type drift checks and the frontend build; if green, deploys to Coolify, waits for the build, health-checks the new commit and smoke-tests the main pages. |
+
+Redeploys don't spend API quota: the worker only runs its start-up sync if there was no successful model run in the
+last 20 hours, otherwise it waits for the daily schedule.
+
+### One-time setup
+
+1. **Coolify:** New resource → **Public/Private Repository** (this repo, branch `main`) → build pack **Docker
+   Compose**, compose file `/docker-compose.prod.yml`. Don't deploy yet.
+   - Set your domain on the **web** service (port 80); Coolify's proxy handles TLS. Optional: a domain on **mlflow**
+     (port 5000) behind basic auth.
+   - Turn **off** Auto Deploy (GitHub Actions deploys only after the tests pass), and turn **on** "Include Source
+     Commit in Build" so `/api/health` reports the running commit.
+   - Enable scheduled backups for the `pgdata` volume.
+   - Note the application's UUID (in its URL), and create an API token under **Keys & Tokens → API tokens** with
+     `write`, `deploy` and `read:sensitive` permissions.
+2. **GitHub:** Settings → Environments → **New environment** `production`, then add:
+   - secrets `COOLIFY_TOKEN` (the token above) and `API_FOOTBALL_KEY` (from dashboard.api-football.com)
+   - variables `COOLIFY_URL` (e.g. `https://coolify.example.com`), `COOLIFY_APP_UUID` and `SITE_URL`
+     (e.g. `https://scout.example.com`)
+3. **Actions → Bootstrap → Run workflow.** The defaults are the Premier League, 2025 season, free-plan quota.
+
+After that, `git push` to `main` is all a release takes. The Deploy workflow skips the deploy step (with a warning)
+until the `production` environment is configured.
+
+On first start the worker loads Transfermarkt values, syncs what the quota allows and trains; then it runs daily at
+`SYNC_CRON_HOUR` UTC (Transfermarkt weekly). To run commands by hand, open the `worker` container's terminal in
+Coolify and run e.g. `python -m app.cli status` or `python -m app.cli train`. Progress is on the **Models** page.
 
 ## Known limits
 

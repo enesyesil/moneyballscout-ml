@@ -21,7 +21,7 @@ def run(loaded_db):
 
 
 def test_endpoints(client):
-    assert client.get("/api/health").json() == {"status": "ok"}
+    assert client.get("/api/health").json()["status"] == "ok"
     meta = client.get("/api/meta").json()
     assert meta["latest_run"]["status"] == "success"
 

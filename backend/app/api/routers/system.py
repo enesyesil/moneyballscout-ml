@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
@@ -19,7 +21,7 @@ FORMATION = {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3}
 @router.get("/health", tags=["system"])
 def health(session: Session = Depends(get_session)):
     session.execute(text("SELECT 1"))
-    return {"status": "ok"}
+    return {"status": "ok", "git_sha": os.getenv("GIT_SHA") or None}
 
 
 @router.get("/meta", response_model=schemas.Meta, tags=["system"])

@@ -2,14 +2,17 @@
 
   daily  (SYNC_CRON_HOUR UTC)  sync -> link -> train
   weekly (Monday 03:00 UTC)    Transfermarkt snapshot -> link
-On start it runs one daily cycle so a fresh deploy fills itself.
+On start it runs one daily cycle so a fresh deploy fills itself. Redeploys within RECENT_RUN_HOURS of a
+successful run skip that cycle, so continuous deployment doesn't spend API quota on every push.
 """
 
 import logging
 import os
+from datetime import UTC, datetime, timedelta
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
+from sqlalchemy import select
 
 from app.cli import daily
 from app.core.config import get_settings
@@ -17,6 +20,20 @@ from app.core.db import advisory_lock, session_scope
 from app.ingest import entity_resolution, transfermarkt
 
 log = logging.getLogger("worker")
+
+RECENT_RUN_HOURS = 20
+
+
+def has_recent_run(hours: int = RECENT_RUN_HOURS) -> bool:
+    from app.models import ModelRun
+
+    with session_scope() as s:
+        last = s.scalar(select(ModelRun.created_at).where(ModelRun.status == "success").order_by(ModelRun.id.desc()).limit(1))
+    if last is None:
+        return False
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=UTC)
+    return datetime.now(UTC) - last < timedelta(hours=hours)
 
 
 def daily_job() -> None:
@@ -57,7 +74,10 @@ def main() -> None:
         except Exception:  # noqa: BLE001
             log.exception("initial transfermarkt load failed")
         try:
-            daily_job()
+            if has_recent_run():
+                log.info("successful model run in the last %dh; skipping the start-up cycle", RECENT_RUN_HOURS)
+            else:
+                daily_job()
         except Exception:  # noqa: BLE001
             log.exception("initial daily run failed")
     log.info("scheduler started: daily at %02d:00 UTC, transfermarkt weekly", s.sync_cron_hour)

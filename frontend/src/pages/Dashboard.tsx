@@ -1,9 +1,28 @@
 import { Link } from "react-router";
-import { useDashboard, useSyncStatus } from "../api/client";
+import { type SyncStatus, useDashboard, useSyncStatus } from "../api/client";
 import ProbBar from "../components/charts/ProbBar";
 import PlayerTable from "../components/PlayerTable";
 import { Avatar, Card, Empty, ErrorBox, Loading, PosChip, RatingBadge, Stat, TeamLogo } from "../components/ui";
 import { dateTime } from "../lib/format";
+
+/** Explains empty or thin numbers while the quota-limited first load and backfill are still running. */
+function DataStatus({ hasRun, sync }: { hasRun: boolean; sync?: SyncStatus }) {
+  const progress = sync ? `${sync.fixtures_with_player_stats} of ${sync.fixtures_finished} finished matches` : null;
+  let message: string;
+  if (!hasRun) {
+    message = `The first data load is running${progress ? ` (${progress} synced so far)` : ""}. Ratings, form and valuations appear after the first model run.`;
+  } else if (sync && sync.backfill_pending > 0) {
+    message = `Backfill in progress: ${sync.backfill_pending} finished matches still to sync (the API allows ${sync.daily_quota} requests a day). Numbers firm up as they arrive.`;
+  } else {
+    return null;
+  }
+  return (
+    <div role="status" className="flex items-start gap-2.5 rounded-lg border border-line bg-surface-2 p-3 text-sm text-ink-2">
+      <span aria-hidden className="mt-1.5 size-2 shrink-0 animate-pulse rounded-full bg-accent" />
+      <p>{message}</p>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { data, isLoading, error } = useDashboard();
@@ -21,6 +40,8 @@ export default function Dashboard() {
           <p className="text-sm text-ink-3">Who is playing well, who is cheap for how they play, and what's coming up.</p>
         </div>
       </div>
+
+      <DataStatus hasRun={!!data.latest_run} sync={sync.data} />
 
       <div className="card grid grid-cols-2 gap-4 p-4 sm:grid-cols-4 sm:p-5">
         <Stat label="Matches with player stats" value={sync.data ? `${sync.data.fixtures_with_player_stats}/${sync.data.fixtures_finished}` : "—"}

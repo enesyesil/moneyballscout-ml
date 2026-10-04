@@ -1,0 +1,86 @@
+# One-time setup of the production site on Coolify (safe to re-run).
+#   1. writes the app's env vars on Coolify (API key, league/season settings; DB and MinIO passwords are
+#      generated once and never overwritten)
+#   2. runs a clean (no-cache) deployment and waits for it
+#   3. waits for /api/health, then optionally for the worker's first data load + model run
+# Prerequisites (see README "Deploy"): the Coolify application exists, and the `production` environment has
+# secrets COOLIFY_TOKEN, API_FOOTBALL_KEY; repository variables COOLIFY_URL, COOLIFY_APP_UUID, SITE_URL.
+name: Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      leagues:
+        description: "API-Football league ids, comma-separated (39 = Premier League)"
+        default: "39"
+      season:
+        description: "Season start year"
+        default: "2026"
+      daily_quota:
+        description: "API-Football requests per day (free plan: 100)"
+        default: "100"
+      sync_cron_hour:
+        description: "Daily sync + retrain hour (UTC)"
+        default: "4"
+      wait_for_first_run:
+        description: "Wait for the first data load and model run (up to 60 min)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 110
+    env:
+      COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+      COOLIFY_APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check settings
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: |
+          missing=""
+          for v in COOLIFY_URL COOLIFY_APP_UUID COOLIFY_TOKEN SITE_URL API_FOOTBALL_KEY; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::missing in the 'production' environment:$missing (see README > Deploy)"
+            exit 1
+          fi
+
+      - name: Configure environment on Coolify
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          LEAGUES: ${{ inputs.leagues }}
+          SEASON: ${{ inputs.season }}
+          DAILY_QUOTA: ${{ inputs.daily_quota }}
+          SYNC_CRON_HOUR: ${{ inputs.sync_cron_hour }}
+        run: >
+          python3 deploy/coolify.py configure
+          --set "API_FOOTBALL_KEY=$API_FOOTBALL_KEY"
+          --set "LEAGUES=$LEAGUES"
+          --set "SEASON=$SEASON"
+          --set "DAILY_QUOTA=$DAILY_QUOTA"
+          --set "SYNC_CRON_HOUR=$SYNC_CRON_HOUR"
+          --set "RUN_ON_START=1"
+          --generate POSTGRES_PASSWORD
+          --generate MINIO_ROOT_PASSWORD
+
+      - name: Deploy (clean build)
+        run: python3 deploy/coolify.py deploy --force --expect-commit "$GITHUB_SHA" --timeout 2700
+
+      - name: Wait for the site
+        run: python3 deploy/coolify.py wait-healthy --site "$SITE_URL" --timeout 600
+
+      - name: Wait for the first data load and model run
+        if: inputs.wait_for_first_run
+        run: python3 deploy/coolify.py wait-first-run --site "$SITE_URL" --timeout 3600
